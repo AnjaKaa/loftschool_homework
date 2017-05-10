@@ -1,7 +1,7 @@
 {
   "name": "loftschool-example",
   "version": "1.0.0",
-  "description": "",
+  "description": "### Доступные команды",
   "main": "index.js",
   "scripts": {
     "codestyle": "eslint src test",
@@ -27,7 +27,7 @@
     "handlebars-loader": "^1.4.0",
     "html-webpack-plugin": "^2.26.0",
     "style-loader": "^0.13.1",
-    "webpack": "^2.2.0"
+    "webpack": "^2.5.1"
   },
   "devDependencies": {
     "chai": "^3.5.0",
@@ -45,5 +45,16 @@
     "karma-webpack": "^2.0.1",
     "mocha": "^3.2.0",
     "webpack-dev-server": "^1.16.2"
-  }
+  },
+  "directories": {
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/VlaSovaAnna/loftschool_homework.git"
+  },
+  "bugs": {
+    "url": "https://github.com/VlaSovaAnna/loftschool_homework/issues"
+  },
+  "homepage": "https://github.com/VlaSovaAnna/loftschool_homework#readme"
 }
