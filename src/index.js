@@ -10,31 +10,21 @@
  Зарпещено использовать встроенные методы для работы с массивами
  */
 function isAllTrue(array, fn) {
-    try {
-        if(array==false || !(array instanceof Array)) {
-            throw new Error('empty array');
-        } 
-        if ( !(typeof fn == "function")) {
-             throw new Error('fn is not a function');
-        }
     
-  
+    if (array==false || !(array instanceof Array)) {
+        throw new Error('empty array');
+    } 
+    if (!(typeof fn == 'function')) {
+        throw new Error('fn is not a function');
+    }
+     
     for (var i in array ) {
-        if(!(fn.call(null,array[i]))){
+        if (!(fn.call(null, array[i]))) {
             return false;
         }      
     }
-	return true;
-	}
-    catch (e) {
-        console.log(e.message);
-        return false;
-    }
-}
 
-function fn(i){
-  if (i>2) {return false; }
-  return true;
+    return true;
 }
 
 /*
@@ -47,6 +37,21 @@ function fn(i){
  Зарпещено использовать встроенные методы для работы с массивами
  */
 function isSomeTrue(array, fn) {
+
+    if (array==false || !(array instanceof Array)) {
+        throw new Error('empty array');
+    } 
+    if ( !(typeof fn == 'function')) {
+        throw new Error('fn is not a function');
+    }
+     
+    for (var i in array ) {
+        if (fn.call(null, array[i])) {
+            return true;
+        }      
+    }
+
+    return false;
 }
 
 /*
@@ -57,7 +62,24 @@ function isSomeTrue(array, fn) {
  Необходимо выбрасывать исключение в случаях:
  - fn не является функцией (с текстом "fn is not a function")
  */
-function returnBadArguments(fn) {
+function returnBadArguments(fn, ...args) {
+    if ( !(typeof fn == 'function')) {
+        throw new Error('fn is not a function');
+    }
+
+    var res=[];
+
+    for (var i in args) {
+        if (args.hasOwnProperty(i)) {
+            try {
+                fn(args[i]);
+            } catch (e) {
+                res.push(args[i]);
+            }
+        }
+    }
+
+    return res;
 }
 
 /*
@@ -74,7 +96,65 @@ function returnBadArguments(fn) {
  - number не является числом (с текстом "number is not a number")
  - какой-либо из аргументов div является нулем (с текстом "division by 0")
  */
-function calculator() {
+function calculator(number=0) {
+
+    number = number || 0;
+
+    if (!(typeof number == 'number')) {                
+        throw new Error('number is not a number');
+    }
+    var obj = {
+        sum: function(...args) {
+            var sumRes=number;
+            
+            for (var i in args) {
+                if (args.hasOwnProperty(i)) {
+                    sumRes+=args[i];
+                }
+            }
+
+            return sumRes
+        },
+        dif: function(...args) {
+            var difRes=number;
+            
+            for (var i in args) {
+                if (args.hasOwnProperty(i)) {
+                    difRes-=args[i];
+                }
+            }
+
+            return difRes;
+        },
+        div: function(...args) {
+
+            var divRes=number;
+            
+            for (var i in args) {
+                if (args.hasOwnProperty(i)) {
+                    if (args[i] === 0) {
+                        throw new Error('division by 0');
+                    }
+                    divRes/=args[i];
+                }
+            }
+
+            return divRes;
+        },
+        mul: function(...args) {
+            var mulRes=number;
+            
+            for (var i in args) {
+                if (args.hasOwnProperty(i)) {
+                    mulRes*=args[i];
+                }
+            }
+
+            return mulRes;
+        }
+    }
+
+    return obj;
 }
 
 export {
