@@ -257,26 +257,38 @@ function collectDOMStat(root) {
 function observeChildNodes(where, fn) {
 
     // создаём экземпляр MutationObserver
-    var observer = new MutationObserver(
+    var observer;
+
+    observer = new MutationObserver(
 
         function(mutations) {
 
-            var arrayNodes=[];
-            var mtype;
+            var arrayNodesInsert=[];
+            var arrayNodesRemove=[];
 
             mutations.forEach(function(mutation) {             
                 if (mutation.addedNodes.length>0) {
-                    mtype= 'insert';
-                    arrayNodes.splice(arrayNodes.length, mutation.addedNodes.lenght, ...mutation.addedNodes);
-                } else if (mutation.removedNodes.length>0) {
-                    mtype='remove';
-                    arrayNodes.splice(arrayNodes.length, mutation.addedNodes.lenght, ...mutation.removedNodes);   
+                    arrayNodesInsert.splice(arrayNodesInsert.length, 
+                                            mutation.addedNodes.lenght, 
+                                            ...mutation.addedNodes);
+                } else if (mutation.removedNodes.length>0) {                   
+                    arrayNodesRemove.splice(arrayNodesRemove.length, 
+                                            mutation.addedNodes.lenght, 
+                                            ...mutation.removedNodes);   
                 }
             });
-            fn({ 
-                type: mtype,
-                nodes: arrayNodes
-            });
+            if (arrayNodesInsert.length>0) {
+                fn({ 
+                    type: 'insert',
+                    nodes: arrayNodesInsert
+                });
+            }
+            if (arrayNodesRemove.length>0) {
+                fn({ 
+                    type: 'remove',
+                    nodes: arrayNodesRemove
+                });
+            }
         });
     observer.observe(where, {
         childList: true, 
