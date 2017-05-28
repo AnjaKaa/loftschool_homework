@@ -61,9 +61,8 @@ function loadAndSortTowns() {
     , function(xhr) {
         var error = new Error (xhr);
 
-        error.code = xhr.status;
+        error.code = xhr.status;        
         
-        // console.error(error);
         return error;
     });
 }

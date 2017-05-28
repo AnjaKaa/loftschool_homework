@@ -1,5 +1,4 @@
-/**
- * ДЗ 6.2 - Создать страницу с текстовым полем для фильтрации городов
+/* ДЗ 6.2 - Создать страницу с текстовым полем для фильтрации городов
  *
  * Страница должна предварительно загрузить список городов из
  * https://raw.githubusercontent.com/smelukov/citiesTest/master/cities.json
@@ -36,33 +35,55 @@ let homeworkContainer = document.querySelector('#homework-container');
  * @return {Promise<Array<{name: string}>>}
  */
 function loadTowns() {
-	return new Promise(function(resolve, reject) {
-        //создаём запрос  
-        var XHR = ("onload" in new XMLHttpRequest()) ? XMLHttpRequest : XDomainRequest;
+    return new Promise(function(resolve, reject) {
+        //  для проверки работы страницы при ошибке загрузки
+        if (Math.round(Math.random())==0) { 
+            return reject();
+        }
+        // создаём запрос  
+        var XHR = ('onload' in new XMLHttpRequest()) ? XMLHttpRequest : XDomainRequest;
         var xhr = new XHR(); 
     
-        //настраиваем соединение
+        // настраиваем соединение 
         xhr.open('Get', 'https://raw.githubusercontent.com/smelukov/citiesTest/master/cities.json');
-        //отправляем запрос
+        // отправляем запрос
         xhr.send();
   
-        //обработчик события 
-        xhr.addEventListener('load',function(){
-          if (xhr.status == 200) {             
-              resolve(xhr);              
-          } else {              
-              reject(xhr);
-          }
-        })
-    }).then(function(xhr){
-        	return JSON.parse(xhr.responseText);
-        },function(xhr) {
-    	var error = new Error(xhr.statusText);
-              error.code = xhr.status;
-              console.error(error);
-          });
-    
-}
+        // обработчик события 
+        xhr.addEventListener('load', function() {
+            if (xhr.status == 200) {             
+                resolve(xhr.responseText);              
+            } else {              
+                reject(xhr.statusText);
+            }
+        });
+    }).then(function(xhr) {
+        var result=JSON.parse(xhr);
+             
+        result.sort(function(el1, el2) {
+            var a = el1.name,
+                b = el2.name;
+
+            if ( a < b ) {
+                return -1;
+            } else if ( a > b ) {
+                return 1;
+            }
+
+            return 0;
+        });
+
+        return result;
+    },
+    function(xhr) {
+        var error = new Error(xhr);
+
+        error.code = xhr.status;
+        
+        return error;
+    }
+    );
+}  
 
 /**
  * Функция должна проверять встречается ли подстрока chunk в строке full
@@ -78,10 +99,11 @@ function loadTowns() {
  * @return {boolean}
  */
 function isMatching(full, chunk) {
-	if (~full.toUpperCase().indexOf(chunk.toUpperCase())) {
-  		return true;
-	}
-	return false;
+    if (~full.toUpperCase().indexOf(chunk.toUpperCase())) {
+        return true;
+    }
+
+    return false;
 }
 
 let loadingBlock = homeworkContainer.querySelector('#loading-block');
@@ -89,19 +111,46 @@ let filterBlock = homeworkContainer.querySelector('#filter-block');
 let filterInput = homeworkContainer.querySelector('#filter-input');
 let filterResult = homeworkContainer.querySelector('#filter-result');
 let townsPromise;
+let towns;
+
+function initTown() {
+    console.log('начало загрузки');
+    townsPromise=loadTowns()
+    .then( value => {
+        console.log('загружен массив городов', value);
+        loadingBlock.setAttribute('Style', 'display: none');
+        filterBlock.setAttribute('Style', 'display: block');  
+        towns=value;
+
+        console.log('загрузка завершена');
+    },
+    function() {
+        loadingBlock.textContent='Не удалось загрузить города';
+        loadingBlock.innerHTML+='<br><button id="button-reload">Перезагрузить</button>';
+        let buttonReload = homeworkContainer.querySelector('#button-reload');
+
+        buttonReload.addEventListener('click', function() {
+            console.log('перезагрузка'); 
+            loadingBlock.innerHTML='Загрузка...';
+            initTown();
+        }) 
+
+    });
+}
+initTown();
 
 filterInput.addEventListener('keyup', function() {
-	var towns=loadTowns();
-	var result=document.querySelector('filter-result');
+  
+    filterResult.innerHTML=// '<h3>Результат:</h3>'+
+        '<ul></ul>';
+    console.log('введён фильтр:', filterInput.value);
 
-	// for ( var el of towns) {
-	// 	if (isMatching(el,))
-	// 	result.appendChild(document.createElement('span').textContent=el.name;);
-	// }
+    if (filterInput.value!='') {
+        for ( var el of towns) {
+            if (isMatching(el.name, filterInput.value)) {
+                filterResult.innerHTML+='<li>'+el.name+'</li>';
+            }
+        }
+    }
 
 });
-
-export {
-    loadTowns,
-    isMatching
-};

@@ -47,7 +47,7 @@ describe('ДЗ 6.1 - Асинхронность и работа с сетью', 
                         assert.isBelow(towns[i - 1].name, town.name, 'города должны быть отсортированы');
                     }
                 });
-               // done();
+                done();
             }).catch(done);
             /* eslint-enable */
         });
