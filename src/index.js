@@ -1,165 +1,51 @@
-/* ДЗ 2 - работа с исключениями и отладчиком */
+/* ДЗ 7.1 - BOM */
 
-/*
- Задача 1:
- Функция принимает массив и фильтрующую фукнцию и должна вернуть true или false
- Функция должна вернуть true только если fn вернула true для всех элементов массива
- Необходимо выбрасывать исключение в случаях:
- - array не массив или пустой массив (с текстом "empty array")
- - fn не является функцией (с текстом "fn is not a function")
- Зарпещено использовать встроенные методы для работы с массивами
+/**
+ * Функция должна создавать окно с указанным именем и размерами
+ *
+ * @param {number} name - имя окна
+ * @param {number} width - ширина окна
+ * @param {number} height - высота окна
+ * @return {Window}
  */
-function isAllTrue(array, fn) {
-    
-    if (array==false || !(array instanceof Array)) {
-        throw new Error('empty array');
-    } 
-    if (!(typeof fn == 'function')) {
-        throw new Error('fn is not a function');
-    }
-     
-    for (var i in array ) {
-        if (!(fn.call(null, array[i]))) {
-            return false;
-        }      
-    }
-
-    return true;
+function createWindow(name, width, height) {
+    return window.open('about:blank', name, 'width='+width+', height='+height);
 }
 
-/*
- Задача 2:
- Функция принимает массив и фильтрующую фукнцию и должна вернуть true или false
- Функция должна вернуть true если fn вернула true хотя бы для одного из элементов массива
- Необходимо выбрасывать исключение в случаях:
- - array не массив или пустой массив (с текстом "empty array")
- - fn не является функцией (с текстом "fn is not a function")
- Зарпещено использовать встроенные методы для работы с массивами
+/**
+ * Функция должна закрывать указанное окно
+ *
+ * @param {Window} window - окно, размер которого надо изменить
  */
-function isSomeTrue(array, fn) {
-
-    if (array==false || !(array instanceof Array)) {
-        throw new Error('empty array');
-    } 
-    if ( !(typeof fn == 'function')) {
-        throw new Error('fn is not a function');
-    }
-     
-    for (var i in array ) {
-        if (fn.call(null, array[i])) {
-            return true;
-        }      
-    }
-
-    return false;
+function closeWindow(window) {
+    window.close();
 }
 
-/*
- Задача 3:
- Функция принимает заранее неизветсное количество аргументов, первым из которых является функция fn
- Функция должна поочередно запусти fn для каждого переданного аргумента (кроме самой fn)
- Функция должна вернуть массив аргументов, для которых fn выбросила исключение
- Необходимо выбрасывать исключение в случаях:
- - fn не является функцией (с текстом "fn is not a function")
+/**
+ * Функция должна создавать cookie с указанными именем и значением
+ *
+ * @param name - имя
+ * @param value - значение
  */
-function returnBadArguments(fn, ...args) {
-    if ( !(typeof fn == 'function')) {
-        throw new Error('fn is not a function');
-    }
-
-    var res=[];
-
-    for (var i in args) {
-        if (args.hasOwnProperty(i)) {
-            try {
-                fn(args[i]);
-            } catch (e) {
-                res.push(args[i]);
-            }
-        }
-    }
-
-    return res;
+function createCookie(name, value) {
+    document.cookie = name+'='+value;
 }
 
-/*
- Задача 4:
- Функция имеет параметр number (по умолчанию - 0)
- Функция должна вернуть объект, у которого должно быть несколько методов:
- - sum - складывает number с переданными аргументами
- - dif - вычитает из number переданные аргументы
- - div - делит number на первый аргумент. Результат делится на следующий аргумент (если передан) и так далее
- - mul - умножает number на первый аргумент. Результат умножается на следующий аргумент (если передан) и так далее
-
- Количество передаваемых в методы аргументов заранее неизвестно
- Необходимо выбрасывать исключение в случаях:
- - number не является числом (с текстом "number is not a number")
- - какой-либо из аргументов div является нулем (с текстом "division by 0")
+/**
+ * Функция должна удалять cookie с указанным именем
+ *
+ * @param name - имя
  */
-function calculator(number=0) {
+function deleteCookie(name) {
+    var date = new Date(); 
 
-    number = number || 0;
-
-    if (!(typeof number == 'number')) {                
-        throw new Error('number is not a number');
-    }
-    var obj = {
-        sum: function(...args) {
-            var sumRes=number;
-            
-            for (var i in args) {
-                if (args.hasOwnProperty(i)) {
-                    sumRes+=args[i];
-                }
-            }
-
-            return sumRes
-        },
-        dif: function(...args) {
-            var difRes=number;
-            
-            for (var i in args) {
-                if (args.hasOwnProperty(i)) {
-                    difRes-=args[i];
-                }
-            }
-
-            return difRes;
-        },
-        div: function(...args) {
-
-            var divRes=number;
-            
-            for (var i in args) {
-                if (args.hasOwnProperty(i)) {
-                    if (args[i] === 0) {
-                        throw new Error('division by 0');
-                    }
-                    divRes/=args[i];
-                }
-            }
-
-            return divRes;
-        },
-        mul: function(...args) {
-            var mulRes=number;
-            
-            for (var i in args) {
-                if (args.hasOwnProperty(i)) {
-                    mulRes*=args[i];
-                }
-            }
-
-            return mulRes;
-        }
-    }
-
-    return obj;
+    date.setTime(date.getTime() - 1); 
+    document.cookie = name += '=; expires=' + date.toGMTString(); 
 }
 
 export {
-    isAllTrue,
-    isSomeTrue,
-    returnBadArguments,
-    calculator
+    createWindow,
+    closeWindow,
+    createCookie,
+    deleteCookie
 };
