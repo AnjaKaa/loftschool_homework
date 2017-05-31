@@ -7,7 +7,7 @@
  * @return {Promise}
  */
 function delayPromise(seconds) {
-    return new Promise(function(resolve, reject) {
+    return new Promise (function(resolve, reject) {
         setTimeout(function() {
             resolve();
         }, seconds*1000);
@@ -21,51 +21,46 @@ function delayPromise(seconds) {
  *
  * @return {Promise<Array<{name: String}>>}
  */
+
 function loadAndSortTowns() {
-    return new Promise(function(resolve, reject) {
+    return new Promise(function(resolve, reject) {        
         // создаём запрос  
         var XHR = ('onload' in new XMLHttpRequest()) ? XMLHttpRequest : XDomainRequest;
         var xhr = new XHR(); 
     
-        // настраиваем соединение
+        // настраиваем соединение 
         xhr.open('Get', 'https://raw.githubusercontent.com/smelukov/citiesTest/master/cities.json');
-        // отправляем запрос
+        // отправляем запрос        
         xhr.send();
-  
         // обработчик события 
-        xhr.addEventListener('load', function() {
-            if (xhr.status == 200) {             
-                resolve(xhr.responseText);              
-            } else {
-                reject(xhr.statusText);
+        xhr.addEventListener('load', function() {          
+  
+            if (this.status == 200) {  
+                var res=JSON.parse(this.responseText); 
+
+                res.sort(function(el1, el2) {
+                    var a = el1.name,
+                        b = el2.name;
+
+                    if ( a < b ) {
+                        return -1;
+                    } else if ( a > b ) {
+                        return 1;
+                    }
+
+                    return 0;
+                });
+                resolve(res);   
+            } else {   
+                var error = new Error(this.statusText);
+                
+                error.code = this.status;
+                reject(error);
             }
-        });
-    }).then(function(xhr) {
-        var result=JSON.parse(xhr);
-             
-        result.sort(function(el1, el2) {
-            var a = el1.name,
-                b = el2.name;
-
-            if ( a < b ) {
-                return -1;
-            } else if ( a > b ) {
-                return 1;
-            }
-
-            return 0;
-        }); 
-
-        return result;
-    }
-    , function(xhr) {
-        var error = new Error (xhr);
-
-        error.code = xhr.status;        
-        
-        return error;
+        })
     });
-}
+}  
+
 export {
     delayPromise,
     loadAndSortTowns

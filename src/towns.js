@@ -35,54 +35,42 @@ let homeworkContainer = document.querySelector('#homework-container');
  * @return {Promise<Array<{name: string}>>}
  */
 function loadTowns() {
-    return new Promise(function(resolve, reject) {
-        //  для проверки работы страницы при ошибке загрузки
-        if (Math.round(Math.random())==0) { 
-            return reject();
-        }
+    return new Promise(function(resolve, reject) {        
         // создаём запрос  
         var XHR = ('onload' in new XMLHttpRequest()) ? XMLHttpRequest : XDomainRequest;
         var xhr = new XHR(); 
     
         // настраиваем соединение 
         xhr.open('Get', 'https://raw.githubusercontent.com/smelukov/citiesTest/master/cities.json');
-        // отправляем запрос
+        // отправляем запрос        
         xhr.send();
-  
         // обработчик события 
-        xhr.addEventListener('load', function() {
-            if (xhr.status == 200) {             
-                resolve(xhr.responseText);              
-            } else {              
-                reject(xhr.statusText);
+        xhr.addEventListener('load', function() {          
+  
+            if (this.status == 200) {  
+                var res=JSON.parse(this.responseText);
+
+                res.sort(function(el1, el2) {
+                    var a = el1.name,
+                        b = el2.name;
+
+                    if ( a < b ) {
+                        return -1;
+                    } else if ( a > b ) {
+                        return 1;
+                    }
+
+                    return 0;
+                });
+                resolve(res);   
+            } else {   
+                var error = new Error(this.statusText);
+
+                error.code = this.status;
+                reject(error);
             }
-        });
-    }).then(function(xhr) {
-        var result=JSON.parse(xhr);
-             
-        result.sort(function(el1, el2) {
-            var a = el1.name,
-                b = el2.name;
-
-            if ( a < b ) {
-                return -1;
-            } else if ( a > b ) {
-                return 1;
-            }
-
-            return 0;
-        });
-
-        return result;
-    },
-    function(xhr) {
-        var error = new Error(xhr);
-
-        error.code = xhr.status;
-        
-        return error;
-    }
-    );
+        })
+    });
 }  
 
 /**
@@ -143,7 +131,7 @@ filterInput.addEventListener('keyup', function() {
   
     filterResult.innerHTML=// '<h3>Результат:</h3>'+
         '<ul></ul>';
-    console.log('введён фильтр:', filterInput.value);
+    // console.log('введён фильтр:', filterInput.value);
 
     if (filterInput.value!='') {
         for ( var el of towns) {
@@ -154,3 +142,8 @@ filterInput.addEventListener('keyup', function() {
     }
 
 });
+
+export {
+    loadTowns,
+    isMatching
+};
