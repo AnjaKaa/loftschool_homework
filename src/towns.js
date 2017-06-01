@@ -129,14 +129,12 @@ initTown();
 
 filterInput.addEventListener('keyup', function() {
   
-    filterResult.innerHTML=// '<h3>Результат:</h3>'+
-        '<ul></ul>';
-    // console.log('введён фильтр:', filterInput.value);
+    filterResult.innerHTML='';
 
     if (filterInput.value!='') {
         for ( var el of towns) {
             if (isMatching(el.name, filterInput.value)) {
-                filterResult.innerHTML+='<li>'+el.name+'</li>';
+                filterResult.innerHTML+='<div>'+el.name+'</div>';
             }
         }
     }
