@@ -1,165 +1,67 @@
-/* ДЗ 2 - работа с исключениями и отладчиком */
+/* ДЗ 6.1 - Асинхронность и работа с сетью */
 
-/*
- Задача 1:
- Функция принимает массив и фильтрующую фукнцию и должна вернуть true или false
- Функция должна вернуть true только если fn вернула true для всех элементов массива
- Необходимо выбрасывать исключение в случаях:
- - array не массив или пустой массив (с текстом "empty array")
- - fn не является функцией (с текстом "fn is not a function")
- Зарпещено использовать встроенные методы для работы с массивами
+/**
+ * Функция должна создавать Promise, который должен быть resolved через seconds секунду после создания
+ *
+ * @param {number} seconds - количество секунд, через которое Promise должен быть resolved
+ * @return {Promise}
  */
-function isAllTrue(array, fn) {
+function delayPromise(seconds) {
+    return new Promise (function(resolve, reject) {
+        setTimeout(function() {
+            resolve();
+        }, seconds*1000);
+    })
+}
+
+/**
+ * Функция должна вернуть Promise, который должен быть разрешен массивом городов, загруженным из
+ * https://raw.githubusercontent.com/smelukov/citiesTest/master/cities.json
+ * Элементы полученного массива должны быть отсортированы по имени города
+ *
+ * @return {Promise<Array<{name: String}>>}
+ */
+
+function loadAndSortTowns() {
+    return new Promise(function(resolve, reject) {        
+        // создаём запрос  
+        var XHR = ('onload' in new XMLHttpRequest()) ? XMLHttpRequest : XDomainRequest;
+        var xhr = new XHR(); 
     
-    if (array==false || !(array instanceof Array)) {
-        throw new Error('empty array');
-    } 
-    if (!(typeof fn == 'function')) {
-        throw new Error('fn is not a function');
-    }
-     
-    for (var i in array ) {
-        if (!(fn.call(null, array[i]))) {
-            return false;
-        }      
-    }
+        // настраиваем соединение 
+        xhr.open('Get', 'https://raw.githubusercontent.com/smelukov/citiesTest/master/cities.json');
+        // отправляем запрос        
+        xhr.send();
+        // обработчик события 
+        xhr.addEventListener('load', function() {          
+  
+            if (this.status == 200) {  
+                var res=JSON.parse(this.responseText); 
 
-    return true;
-}
+                res.sort(function(el1, el2) {
+                    var a = el1.name,
+                        b = el2.name;
 
-/*
- Задача 2:
- Функция принимает массив и фильтрующую фукнцию и должна вернуть true или false
- Функция должна вернуть true если fn вернула true хотя бы для одного из элементов массива
- Необходимо выбрасывать исключение в случаях:
- - array не массив или пустой массив (с текстом "empty array")
- - fn не является функцией (с текстом "fn is not a function")
- Зарпещено использовать встроенные методы для работы с массивами
- */
-function isSomeTrue(array, fn) {
-
-    if (array==false || !(array instanceof Array)) {
-        throw new Error('empty array');
-    } 
-    if ( !(typeof fn == 'function')) {
-        throw new Error('fn is not a function');
-    }
-     
-    for (var i in array ) {
-        if (fn.call(null, array[i])) {
-            return true;
-        }      
-    }
-
-    return false;
-}
-
-/*
- Задача 3:
- Функция принимает заранее неизветсное количество аргументов, первым из которых является функция fn
- Функция должна поочередно запусти fn для каждого переданного аргумента (кроме самой fn)
- Функция должна вернуть массив аргументов, для которых fn выбросила исключение
- Необходимо выбрасывать исключение в случаях:
- - fn не является функцией (с текстом "fn is not a function")
- */
-function returnBadArguments(fn, ...args) {
-    if ( !(typeof fn == 'function')) {
-        throw new Error('fn is not a function');
-    }
-
-    var res=[];
-
-    for (var i in args) {
-        if (args.hasOwnProperty(i)) {
-            try {
-                fn(args[i]);
-            } catch (e) {
-                res.push(args[i]);
-            }
-        }
-    }
-
-    return res;
-}
-
-/*
- Задача 4:
- Функция имеет параметр number (по умолчанию - 0)
- Функция должна вернуть объект, у которого должно быть несколько методов:
- - sum - складывает number с переданными аргументами
- - dif - вычитает из number переданные аргументы
- - div - делит number на первый аргумент. Результат делится на следующий аргумент (если передан) и так далее
- - mul - умножает number на первый аргумент. Результат умножается на следующий аргумент (если передан) и так далее
-
- Количество передаваемых в методы аргументов заранее неизвестно
- Необходимо выбрасывать исключение в случаях:
- - number не является числом (с текстом "number is not a number")
- - какой-либо из аргументов div является нулем (с текстом "division by 0")
- */
-function calculator(number=0) {
-
-    number = number || 0;
-
-    if (!(typeof number == 'number')) {                
-        throw new Error('number is not a number');
-    }
-    var obj = {
-        sum: function(...args) {
-            var sumRes=number;
-            
-            for (var i in args) {
-                if (args.hasOwnProperty(i)) {
-                    sumRes+=args[i];
-                }
-            }
-
-            return sumRes
-        },
-        dif: function(...args) {
-            var difRes=number;
-            
-            for (var i in args) {
-                if (args.hasOwnProperty(i)) {
-                    difRes-=args[i];
-                }
-            }
-
-            return difRes;
-        },
-        div: function(...args) {
-
-            var divRes=number;
-            
-            for (var i in args) {
-                if (args.hasOwnProperty(i)) {
-                    if (args[i] === 0) {
-                        throw new Error('division by 0');
+                    if ( a < b ) {
+                        return -1;
+                    } else if ( a > b ) {
+                        return 1;
                     }
-                    divRes/=args[i];
-                }
+
+                    return 0;
+                });
+                resolve(res);   
+            } else {   
+                var error = new Error(this.statusText);
+                
+                error.code = this.status;
+                reject(error);
             }
-
-            return divRes;
-        },
-        mul: function(...args) {
-            var mulRes=number;
-            
-            for (var i in args) {
-                if (args.hasOwnProperty(i)) {
-                    mulRes*=args[i];
-                }
-            }
-
-            return mulRes;
-        }
-    }
-
-    return obj;
-}
+        })
+    });
+}  
 
 export {
-    isAllTrue,
-    isSomeTrue,
-    returnBadArguments,
-    calculator
+    delayPromise,
+    loadAndSortTowns
 };
