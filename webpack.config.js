@@ -14,10 +14,7 @@ loaders.push({
 });
 
 module.exports = {
-    entry: {
-        main: './src/index.js',
-        townss: './src/towns.js'
-    },
+    entry: './src/index.js',
     output: {
         filename: '[hash].js',
         path: path.resolve('dist')
@@ -35,15 +32,8 @@ module.exports = {
         }),
         new ExtractTextPlugin('styles.css'),
         new HtmlPlugin({
-            title: 'Main Homework',
-            template: 'index.hbs',
-            chunks: ['main']
-        }),
-        new HtmlPlugin({
-            title: 'Div Drag And Drop',
-            template: 'towns.hbs',
-            filename: 'towns.html',
-            chunks: ['towns']
+            title: 'Loft School sample project',
+            template: 'index.hbs'
         }),
         new CleanWebpackPlugin(['dist'])
     ]
