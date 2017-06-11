@@ -4,30 +4,8 @@ var myModule = {
     Init: function() {
 
         listFrends=document.querySelectorAll('.friend');
+       
 
-        var lsfilterListId = localStorage.getItem('filterListId');
-
-        listFrends.forEach((friend)=>{  
-            friend.setAttribute('draggable', 'true'); 
-            addListeners(friend);
-            friend.childNodes.forEach((friendFild) => {
-                if (friendFild.tagName=='BUTTON') {
-                    friendFild.addEventListener('click', () => moveFriend(friend));
-                }
-            });  
-
-            if (lsfilterListId.indexOf(friend.id)!=-1) {
-                document.getElementById('friends-result').appendChild(friend);
-                friend.childNodes.forEach((friendFild) => {
-                    if (friendFild.tagName=='BUTTON') {
-                        friendFild.classList.remove('add_button');
-                        friendFild.classList.add('remove_button');
-                        friendFild.innerHTML='x';
-                    }
-                });
-            } 
-
-        });
         document.getElementById('friends-result').addEventListener('drop', function(e) {   
         
             e.preventDefault();
@@ -68,25 +46,47 @@ var myModule = {
             updateTableFriends(this);
         });
 
+         var lsfilterListId = localStorage.getItem('filterListId');
+
+        if (lsfilterListId)
+        {
+            listFrends.forEach((friend)=>{  
+                friend.setAttribute('draggable', 'true'); 
+                addListeners(friend);
+                friend.childNodes.forEach((friendFild) => {
+                    if (friendFild.tagName=='BUTTON') {
+                        friendFild.addEventListener('click', () => moveFriend(friend));
+                    }
+                });  
+
+                if (lsfilterListId.indexOf(friend.id)!=-1) {
+                    document.getElementById('friends-result').appendChild(friend);
+                    friend.childNodes.forEach((friendFild) => {
+                        if (friendFild.tagName=='BUTTON') {
+                            friendFild.classList.remove('add_button');
+                            friendFild.classList.add('remove_button');
+                            friendFild.innerHTML='x';
+                        }
+                    });
+                } 
+
+            });
+        }
+
     }
 }
 
 function updateTableFriends(filter) {
-    if (filter.value=='') {
-        listFrends.forEach((friend) => 
-                friend.style=''
-            )   
-    } else {
-        listFrends.forEach((friend) =>{
-            if (!isMatching(friend.querySelector('.name').innerText, filter.value) &&  
-                    ( friend.closest('.friends').id=='friends-source' && filter.id=='input-frends' ||
-                      friend.closest('.friends').id=='friends-result' && filter.id=='input-frends-result')) {
-                friend.style.display='none'
-            } else {
-                friend.style=''
-            }
-        });
-    }
+    listFrends.forEach((friend) =>{
+        if (!isMatching(friend.querySelector('.name').innerText, filter.value) &&  
+                ( friend.closest('.friends').id=='friends-source' && filter.id=='input-frends' ||
+                  friend.closest('.friends').id=='friends-result' && filter.id=='input-frends-result')) {
+            friend.style.display='none'
+        } else {
+            friend.style=''
+        }
+    });
+
 }
 
 function isMatching(full, chunk) {
