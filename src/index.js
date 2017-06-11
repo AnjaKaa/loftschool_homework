@@ -46,12 +46,15 @@ var myModule = {
             updateTableFriends(this);
         });
 
-         var lsfilterListId = localStorage.getItem('filterListId');
+        listFrends.forEach((friend)=>{  
+                friend.setAttribute('draggable', 'true'); 
+            });
+
+        var lsfilterListId = localStorage.getItem('filterListId');
 
         if (lsfilterListId)
         {
-            listFrends.forEach((friend)=>{  
-                friend.setAttribute('draggable', 'true'); 
+            listFrends.forEach((friend)=>{                 
                 addListeners(friend);
                 friend.childNodes.forEach((friendFild) => {
                     if (friendFild.tagName=='BUTTON') {
@@ -213,7 +216,7 @@ function vkInit() {
 var template = `
 {{#each items}} 
     <div class='friend' id='{{id}}'>
-        <img src={{#if photo_200}}'{{photo_200}}'{{else}}'/img/no_photo.jpeg'{{/if}}>
+        <img src={{#if photo_200}}'{{photo_200}}'{{else}}'../img/no_photo.jpeg'{{/if}}>
         <div class='name'>{{first_name}} {{last_name}}</div>
          <button class='add_button'>+</button>
     </div>
