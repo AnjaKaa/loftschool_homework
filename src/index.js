@@ -48,20 +48,19 @@ var myModule = {
 
         listFrends.forEach((friend)=>{  
                 friend.setAttribute('draggable', 'true'); 
-            });
-
-        var lsfilterListId = localStorage.getItem('filterListId');
-
-        if (lsfilterListId)
-        {
-            listFrends.forEach((friend)=>{                 
-                addListeners(friend);
-                friend.childNodes.forEach((friendFild) => {
+                friend.querySelector('img').setAttribute('draggable', 'false');
+                listFrends.forEach((friend)=>{                 
+                    addListeners(friend);
+                    friend.childNodes.forEach((friendFild) => {
                     if (friendFild.tagName=='BUTTON') {
                         friendFild.addEventListener('click', () => moveFriend(friend));
                     }
                 });  
+            });
 
+        var lsfilterListId = localStorage.getItem('filterListId');
+
+        if (lsfilterListId) {
                 if (lsfilterListId.indexOf(friend.id)!=-1) {
                     document.getElementById('friends-result').appendChild(friend);
                     friend.childNodes.forEach((friendFild) => {
@@ -71,10 +70,10 @@ var myModule = {
                             friendFild.innerHTML='x';
                         }
                     });
-                } 
+                }
+            } 
 
-            });
-        }
+        });
 
     }
 }
