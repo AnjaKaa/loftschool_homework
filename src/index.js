@@ -3,8 +3,7 @@ var listFrends;
 var myModule = {
     Init: function() {
 
-        listFrends=document.querySelectorAll('.friend');
-       
+        listFrends=document.querySelectorAll('.friend');       
 
         document.getElementById('friends-result').addEventListener('drop', function(e) {   
         
@@ -38,37 +37,35 @@ var myModule = {
             localStorage.setItem('filterListId', filterListId);
         });
 
-        document.getElementById('input-frends').addEventListener('keyup', function() {
-            updateTableFriends(this);
+        document.getElementById('input-friends-source').addEventListener('keyup', function() {
+            updateTableFriends();
         });
 
-        document.getElementById('input-frends-result').addEventListener('keyup', function() {
-            updateTableFriends(this);
+        document.getElementById('input-friends-result').addEventListener('keyup', function() {
+            updateTableFriends();
         });
 
         listFrends.forEach((friend)=>{  
-                friend.setAttribute('draggable', 'true'); 
-                friend.querySelector('img').setAttribute('draggable', 'false');
-                listFrends.forEach((friend)=>{                 
-                    addListeners(friend);
-                    friend.childNodes.forEach((friendFild) => {
+            friend.setAttribute('draggable', 'true'); 
+            friend.querySelector('img').setAttribute('draggable', 'false');
+            listFrends.forEach((friend)=>{                 
+                addListeners(friend);
+                friend.childNodes.forEach((friendFild) => {
                     if (friendFild.tagName=='BUTTON') {
                         friendFild.addEventListener('click', () => moveFriend(friend));
                     }
                 });  
             });
 
-        var lsfilterListId = localStorage.getItem('filterListId');
+            var lsfilterListId = localStorage.getItem('filterListId');
 
-        if (lsfilterListId) {
+            if (lsfilterListId) {
                 if (lsfilterListId.indexOf(friend.id)!=-1) {
                     document.getElementById('friends-result').appendChild(friend);
                     friend.childNodes.forEach((friendFild) => {
                         if (friendFild.tagName=='BUTTON') {
-                            friendFild.classList.remove('add_button');
-                            friendFild.classList.add('remove_button');
-                            friendFild.innerHTML='x';
-                        }
+                            friendButtonSetStyle(friendFild, 'remove'); 
+                        } 
                     });
                 }
             } 
@@ -78,12 +75,31 @@ var myModule = {
     }
 }
 
-function updateTableFriends(filter) {
+function friendButtonSetStyle(button, type) {
+    if (type=='remove') {    
+        button.classList.remove('add_button');
+        button.classList.add('remove_button');
+        button.innerHTML='x';                
+    } else if (type=='add') {            
+        button.classList.remove('remove_button');
+        button.classList.add('add_button');
+        button.innerHTML='+';           
+    }
+}
+
+function updateTableFriends() {
+    var inputFriendsSourceValue=document.getElementById('input-friends-source').value;
+    var inputFriendsResultValue=document.getElementById('input-friends-result').value;
+
     listFrends.forEach((friend) =>{
-        if (!isMatching(friend.querySelector('.name').innerText, filter.value) &&  
-                ( friend.closest('.friends').id=='friends-source' && filter.id=='input-frends' ||
-                  friend.closest('.friends').id=='friends-result' && filter.id=='input-frends-result')) {
-            friend.style.display='none'
+        var parentFriendId=friend.closest('.friends').id;
+        
+        if (parentFriendId=='friends-source' 
+        && !isMatching(friend.querySelector('.name').innerText, inputFriendsSourceValue) 
+        ||
+        parentFriendId=='friends-result' 
+        && !isMatching(friend.querySelector('.name').innerText, inputFriendsResultValue)) {
+        friend.style.display='none'
         } else {
             friend.style=''
         }
@@ -107,9 +123,7 @@ function moveFriend(friend) {
         resultBlock=document.getElementById('friends-result');
         friend.childNodes.forEach((friendFild) => {
             if (friendFild.tagName=='BUTTON') {
-                friendFild.classList.remove('add_button');
-                friendFild.classList.add('remove_button');
-                friendFild.innerHTML='x';
+                friendButtonSetStyle(friendFild, 'remove');
             }
         });
     
@@ -118,14 +132,12 @@ function moveFriend(friend) {
         resultBlock=document.getElementById('friends-source');
         friend.childNodes.forEach((friendFild) => {
             if (friendFild.tagName=='BUTTON') {
-                friendFild.classList.remove('remove_button');
-                friendFild.classList.add('add_button');
-                friendFild.innerHTML='+';
+                friendButtonSetStyle(friendFild, 'add');
             }
-        });
-    
+        });    
     }
     resultBlock.appendChild(friend);
+    updateTableFriends();
 }  
 
 function addListeners(target) {  
@@ -152,32 +164,33 @@ function addListeners(target) {
     })
 }
 
-function dropElement(e) {   
+function dropElement(e) {  
+   
     var data = e.dataTransfer.getData('text');
-
-    e.currentTarget.appendChild(document.getElementById(data));  
-
     var curBlock=e.currentTarget;
-    var buttons;
+    var moveElement=document.getElementById(data);
 
-    if (curBlock.id=='friends-source') {
-        buttons=curBlock.getElementsByTagName('BUTTON');
-     
-        for (var i=0; i<buttons.length; i++) {   
-            buttons[i].classList.remove('remove_button');
-            buttons[i].classList.add('add_button');
-            buttons[i].innerHTML='+';
-        }
-    }
-    if (curBlock.id=='friends-result') {
-        buttons=curBlock.getElementsByTagName('BUTTON');
+    if (curBlock!= moveElement.closest('.friends')) { 
+        e.currentTarget.appendChild(moveElement); 
        
-        for (var i=0; i<buttons.length; i++) {  
-            buttons[i].classList.remove('add_button');
-            buttons[i].classList.add('remove_button');
-            buttons[i].innerHTML='x';
+        var buttons;
+
+        if (curBlock.id=='friends-source') {
+            buttons=curBlock.getElementsByTagName('BUTTON');
+         
+            for (var i=0; i<buttons.length; i++) {   
+                friendButtonSetStyle(buttons[i], 'add');
+            }
         }
-    }   
+        if (curBlock.id=='friends-result') {
+            buttons=curBlock.getElementsByTagName('BUTTON');
+           
+            for (var i=0; i<buttons.length; i++) {                
+                friendButtonSetStyle(buttons[i], 'remove');
+            }
+        }   
+        updateTableFriends();
+    }
 }
 
 function vkApi(method, options) {
