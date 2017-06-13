@@ -1,0 +1,159 @@
+<style>
+
+    body {
+      font-family: Helvetica;
+      font-size: 16px;      
+    }
+
+    .overlay {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        background-color: #000000;
+        opacity: 0.3;
+    }
+
+    .lists-wrapper {
+        left: 50%;
+        top: 50%;
+        padding: 10px;
+        border-radius: 10px;
+    }
+
+    .container {
+        position: absolute;
+        width: 600px;
+        height: 600px;
+        top: 50%;
+        left: 50%;
+        margin-left: -300px;
+        margin-top:-300px;
+        border-radius: 20px;
+        overflow:hidden;
+        background-color: #f1f1f1;
+
+    }
+
+    #headerInfo {
+        min-height: 10%;
+        margin: 0;
+        padding: 16px;
+        background-color: #f6856e;
+        color: white;
+        box-sizing: border-box;
+    }
+
+    .column-list {
+        width: 50%;
+        height: 20%;
+        float:left;
+        top: 10%;
+    }
+
+
+
+
+    #friends-source,
+    #friends-result {
+         height: 400px;
+         margin: 0 auto;         
+         overflow-y: auto;
+         background:
+          linear-gradient(white 30%, rgba(255,255,255,0)),
+          linear-gradient(rgba(255,255,255,0), white 70%) 0 100%,
+          radial-gradient(farthest-side at 50% 0, rgba(0,0,0,.2), rgba(0,0,0,0)),
+          radial-gradient(farthest-side at 50% 100%, rgba(0,0,0,.2), rgba(0,0,0,0)) 0 100%;
+         background-repeat: no-repeat;
+         background-size: 100% 40px, 100% 40px, 100% 14px, 100% 14px;
+         background-attachment: local, local, scroll, scroll;
+    }
+
+    .clearfix::after {
+        content: "";
+        display: table;
+        clear: both;
+    }
+
+    #input-friends-result,
+    #input-friends-source {
+        width: 80%;
+        margin: 10px;
+        padding: 5px;
+        font-size: 12px;
+        line-height: 18px;
+        border: 1px solid #f1f1f1;
+        border-radius: 10px;
+    }
+
+    .friend {
+        display: flex;
+        margin: 10px;
+        width: 260px;
+        draggable: true;
+    }
+
+    .friend img {
+        display: inline-block;
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;      
+        line-height: 50px;
+        vertical-align: top;
+    }
+
+    .friend .name {
+        flex-grow: 1;
+        display: inline-block;
+        margin: 0 10px;
+        font-weight: bold;
+        font-size: 12px;
+        line-height: 18px;
+        vertical-align: top;
+    }
+
+    .friend button {
+        width: 25px;
+        height: 25px;
+}
+
+    #save_button {
+        float: right;
+        min-height: 40px;
+        margin: 10px;
+        padding: 0 20px;
+        background-color: #f6856e;
+        color: white;
+        border: none;
+        border-radius: 10px;
+
+    }
+
+    h4 {
+        margin:0;
+        background-color: white;
+    }
+</style>
+  
+<div class="overlay">
+ </div>
+<div class="container">  
+    <h1 id="headerInfo"></h1>
+    <div class="lists-wrapper">
+    <div class="column-list">    
+        
+        <input id ="input-friends-source" type="text" placeholder="Начните вводить имя друга">
+        <h4>Друзья</h4> 
+          <div id="friends-source" class="friends">
+         
+          </div>
+      </div>
+      <div class="column-list">    
+        <input id ="input-friends-result" type="text" placeholder="Начните вводить имя друга">  
+        <h4>Выбранные друзья</h4> 
+          <div id="friends-result" class="friends">
+        
+          </div>
+      </div>
+      <button id="save_button">Сохранить</button>
+  </div>
+</div>

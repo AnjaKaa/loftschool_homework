@@ -1,165 +1,255 @@
-/* ДЗ 2 - работа с исключениями и отладчиком */
+var listFrends;
 
-/*
- Задача 1:
- Функция принимает массив и фильтрующую фукнцию и должна вернуть true или false
- Функция должна вернуть true только если fn вернула true для всех элементов массива
- Необходимо выбрасывать исключение в случаях:
- - array не массив или пустой массив (с текстом "empty array")
- - fn не является функцией (с текстом "fn is not a function")
- Зарпещено использовать встроенные методы для работы с массивами
- */
-function isAllTrue(array, fn) {
-    
-    if (array==false || !(array instanceof Array)) {
-        throw new Error('empty array');
-    } 
-    if (!(typeof fn == 'function')) {
-        throw new Error('fn is not a function');
-    }
-     
-    for (var i in array ) {
-        if (!(fn.call(null, array[i]))) {
-            return false;
-        }      
-    }
+var myModule = {
+    Init: function() {
 
-    return true;
+        listFrends=document.querySelectorAll('.friend');       
+
+        document.getElementById('friends-result').addEventListener('drop', function(e) {   
+        
+            e.preventDefault();
+            dropElement(e);  
+        });
+          
+        document.getElementById('friends-result').addEventListener('dragover', function(e) { 
+            e.preventDefault();
+        });
+
+        document.getElementById('friends-source').addEventListener('drop', function(e) {   
+                    
+            e.preventDefault();
+            dropElement(e); 
+        });
+          
+        document.getElementById('friends-source').addEventListener('dragover', function(e) { 
+            e.preventDefault();
+        });
+
+        document.getElementById('save_button').addEventListener('click', function() {
+            var filterList=document.getElementById('friends-result').querySelectorAll('.friend');
+
+            var filterListId=[];
+
+            for ( var i=0;i< filterList.length;i++) {                   
+                filterListId.push(filterList[i].id);
+            }
+           
+            localStorage.setItem('filterListId', filterListId);
+        });
+
+        document.getElementById('input-friends-source').addEventListener('keyup', function() {
+            updateTableFriends();
+        });
+
+        document.getElementById('input-friends-result').addEventListener('keyup', function() {
+            updateTableFriends();
+        });
+
+        document.getElementById('friends-source').addEventListener('click', function(e) { 
+            if (e.target.tagName=="BUTTON") {
+                moveFriend(e.target.closest('.friend'));
+            }
+        });
+
+        document.getElementById('friends-result').addEventListener('click', function(e) { 
+            if (e.target.tagName=="BUTTON") {
+                moveFriend(e.target.closest('.friend'));
+            }
+        });
+
+        listFrends.forEach((friend)=>{  
+            friend.setAttribute('draggable', 'true'); 
+            friend.querySelector('img').setAttribute('draggable', 'false');
+
+            var lsfilterListId = localStorage.getItem('filterListId');
+
+            if (lsfilterListId) {
+                if (lsfilterListId.indexOf(friend.id)!=-1) {
+                    document.getElementById('friends-result').appendChild(friend);
+                    friend.childNodes.forEach((friendFild) => {
+                        if (friendFild.tagName=='BUTTON') {
+                            friendButtonSetStyle(friendFild, 'remove'); 
+                        } 
+                    });
+                }
+            } 
+
+        });
+
+    }
 }
 
-/*
- Задача 2:
- Функция принимает массив и фильтрующую фукнцию и должна вернуть true или false
- Функция должна вернуть true если fn вернула true хотя бы для одного из элементов массива
- Необходимо выбрасывать исключение в случаях:
- - array не массив или пустой массив (с текстом "empty array")
- - fn не является функцией (с текстом "fn is not a function")
- Зарпещено использовать встроенные методы для работы с массивами
- */
-function isSomeTrue(array, fn) {
-
-    if (array==false || !(array instanceof Array)) {
-        throw new Error('empty array');
-    } 
-    if ( !(typeof fn == 'function')) {
-        throw new Error('fn is not a function');
+function friendButtonSetStyle(button, type) {
+    if (type=='remove') {    
+        button.classList.remove('add_button');
+        button.classList.add('remove_button');
+        button.innerHTML='x';                
+    } else if (type=='add') {            
+        button.classList.remove('remove_button');
+        button.classList.add('add_button');
+        button.innerHTML='+';           
     }
-     
-    for (var i in array ) {
-        if (fn.call(null, array[i])) {
-            return true;
-        }      
+}
+
+function updateTableFriends() {
+    var inputFriendsSourceValue=document.getElementById('input-friends-source').value;
+    var inputFriendsResultValue=document.getElementById('input-friends-result').value;
+
+    listFrends.forEach((friend) =>{
+        var parentFriendId=friend.closest('.friends').id;
+        
+        if (parentFriendId=='friends-source' 
+        && !isMatching(friend.querySelector('.name').innerText, inputFriendsSourceValue) 
+        ||
+        parentFriendId=='friends-result' 
+        && !isMatching(friend.querySelector('.name').innerText, inputFriendsResultValue)) {
+        friend.style.display='none'
+        } else {
+            friend.style=''
+        }
+    });
+
+}
+
+function isMatching(full, chunk) {
+    if (~full.toUpperCase().indexOf(chunk.toUpperCase())) {
+        return true;
     }
 
     return false;
 }
 
-/*
- Задача 3:
- Функция принимает заранее неизветсное количество аргументов, первым из которых является функция fn
- Функция должна поочередно запусти fn для каждого переданного аргумента (кроме самой fn)
- Функция должна вернуть массив аргументов, для которых fn выбросила исключение
- Необходимо выбрасывать исключение в случаях:
- - fn не является функцией (с текстом "fn is not a function")
- */
-function returnBadArguments(fn, ...args) {
-    if ( !(typeof fn == 'function')) {
-        throw new Error('fn is not a function');
-    }
+function moveFriend(friend) {
 
-    var res=[];
-
-    for (var i in args) {
-        if (args.hasOwnProperty(i)) {
-            try {
-                fn(args[i]);
-            } catch (e) {
-                res.push(args[i]);
+    var resultBlock;
+ 
+    if ( friend.closest('.friends').id=='friends-source') {   
+        resultBlock=document.getElementById('friends-result');
+        friend.childNodes.forEach((friendFild) => {
+            if (friendFild.tagName=='BUTTON') {
+                friendButtonSetStyle(friendFild, 'remove');
             }
-        }
+        });
+    
+    } else if 
+       ( friend.closest('.friends').id=='friends-result') {   
+        resultBlock=document.getElementById('friends-source');
+        friend.childNodes.forEach((friendFild) => {
+            if (friendFild.tagName=='BUTTON') {
+                friendButtonSetStyle(friendFild, 'add');
+            }
+        });    
     }
+    resultBlock.appendChild(friend);
+    updateTableFriends();
+}  
 
-    return res;
+
+
+function addListeners(target) {  
+    target.addEventListener('dragstart', function(e) {
+        this.style.opacity = '0.4';  
+        e.dataTransfer.effectAllowed='move';
+        e.dataTransfer.setData('text', e.target.id);  
+    }); 
+
+    target.addEventListener('dragend', function() {  
+        this.style.opacity = '1';
+    });  
+
+    target.addEventListener('dragenter', function(e) {
+        e.preventDefault();
+    })
+  
+    target.addEventListener('dragover', function(e) {
+        e.preventDefault();
+    })
+  
+    target.addEventListener('drop', function(e) {
+        e.preventDefault();
+    })
 }
 
-/*
- Задача 4:
- Функция имеет параметр number (по умолчанию - 0)
- Функция должна вернуть объект, у которого должно быть несколько методов:
- - sum - складывает number с переданными аргументами
- - dif - вычитает из number переданные аргументы
- - div - делит number на первый аргумент. Результат делится на следующий аргумент (если передан) и так далее
- - mul - умножает number на первый аргумент. Результат умножается на следующий аргумент (если передан) и так далее
+function dropElement(e) {  
+   
+    var data = e.dataTransfer.getData('text');
+    var curBlock=e.currentTarget;
+    var moveElement=document.getElementById(data);
 
- Количество передаваемых в методы аргументов заранее неизвестно
- Необходимо выбрасывать исключение в случаях:
- - number не является числом (с текстом "number is not a number")
- - какой-либо из аргументов div является нулем (с текстом "division by 0")
- */
-function calculator(number=0) {
+    if (curBlock!= moveElement.closest('.friends')) { 
+        e.currentTarget.appendChild(moveElement); 
+       
+        var buttons;
 
-    number = number || 0;
-
-    if (!(typeof number == 'number')) {                
-        throw new Error('number is not a number');
-    }
-    var obj = {
-        sum: function(...args) {
-            var sumRes=number;
-            
-            for (var i in args) {
-                if (args.hasOwnProperty(i)) {
-                    sumRes+=args[i];
-                }
+        if (curBlock.id=='friends-source') {
+            buttons=curBlock.getElementsByTagName('BUTTON');
+         
+            for (var i=0; i<buttons.length; i++) {   
+                friendButtonSetStyle(buttons[i], 'add');
             }
-
-            return sumRes
-        },
-        dif: function(...args) {
-            var difRes=number;
-            
-            for (var i in args) {
-                if (args.hasOwnProperty(i)) {
-                    difRes-=args[i];
-                }
-            }
-
-            return difRes;
-        },
-        div: function(...args) {
-
-            var divRes=number;
-            
-            for (var i in args) {
-                if (args.hasOwnProperty(i)) {
-                    if (args[i] === 0) {
-                        throw new Error('division by 0');
-                    }
-                    divRes/=args[i];
-                }
-            }
-
-            return divRes;
-        },
-        mul: function(...args) {
-            var mulRes=number;
-            
-            for (var i in args) {
-                if (args.hasOwnProperty(i)) {
-                    mulRes*=args[i];
-                }
-            }
-
-            return mulRes;
         }
+        if (curBlock.id=='friends-result') {
+            buttons=curBlock.getElementsByTagName('BUTTON');
+           
+            for (var i=0; i<buttons.length; i++) {                
+                friendButtonSetStyle(buttons[i], 'remove');
+            }
+        }   
+        updateTableFriends();
     }
-
-    return obj;
 }
 
-export {
-    isAllTrue,
-    isSomeTrue,
-    returnBadArguments,
-    calculator
-};
+function vkApi(method, options) {
+    if (!options.v) {
+        options.v = '5.64';
+    }
+
+    return new Promise((resolve, reject) => {
+        VK.api(method, options, data => {
+            if (data.error) {
+                reject(new Error(data.error.error_msg));
+            } else {
+                resolve(data.response);
+            }
+        });
+    });
+}
+
+function vkInit() {
+    return new Promise((resolve, reject) => {
+        VK.init({
+            apiId: 6058892
+        });
+
+        VK.Auth.login(data => {
+            if (data.session) {
+                resolve();
+            } else {
+                reject(new Error('Не удалось авторизоваться'));
+            }
+        }, 2);
+    });
+}
+
+var template = `
+{{#each items}} 
+    <div class='friend' id='{{id}}'>
+        <img src={{#if photo_200}}'{{photo_200}}'{{else}}'../img/no_photo.jpeg'{{/if}}>
+        <div class='name'>{{first_name}} {{last_name}}</div>
+         <button class='add_button'>+</button>
+    </div>
+{{/each}}
+
+`;
+var templateFn = Handlebars.compile(template);
+
+new Promise(resolve => window.onload = resolve)
+    .then(() => vkInit())
+    .then(() => vkApi('users.get', { name_case: 'gen' }))
+    .then(response => {
+        headerInfo.textContent = `Выберите друзей ${response[0].first_name} ${response[0].last_name}`;
+    })
+    .then(() => vkApi('friends.get', { fields: 'photo_200' }))
+    .then(response => document.getElementById('friends-source').innerHTML += templateFn(response))
+    .then(() => myModule.Init())
+    .catch(e => alert('Ошибка: ' + e.message));
