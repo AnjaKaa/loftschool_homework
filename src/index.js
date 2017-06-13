@@ -45,17 +45,21 @@ var myModule = {
             updateTableFriends();
         });
 
+        document.getElementById('friends-source').addEventListener('click', function(e) { 
+            if (e.target.tagName=="BUTTON") {
+                moveFriend(e.target.closest('.friend'));
+            }
+        });
+
+        document.getElementById('friends-result').addEventListener('click', function(e) { 
+            if (e.target.tagName=="BUTTON") {
+                moveFriend(e.target.closest('.friend'));
+            }
+        });
+
         listFrends.forEach((friend)=>{  
             friend.setAttribute('draggable', 'true'); 
             friend.querySelector('img').setAttribute('draggable', 'false');
-            listFrends.forEach((friend)=>{                 
-                addListeners(friend);
-                friend.childNodes.forEach((friendFild) => {
-                    if (friendFild.tagName=='BUTTON') {
-                        friendFild.addEventListener('click', () => moveFriend(friend));
-                    }
-                });  
-            });
 
             var lsfilterListId = localStorage.getItem('filterListId');
 
@@ -139,6 +143,8 @@ function moveFriend(friend) {
     resultBlock.appendChild(friend);
     updateTableFriends();
 }  
+
+
 
 function addListeners(target) {  
     target.addEventListener('dragstart', function(e) {
