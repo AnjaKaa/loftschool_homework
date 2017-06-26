@@ -2,8 +2,10 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>{{htmlWebpackPlugin.options.title}}</title>
+  <title>{{htmlWebpackPlugin.options.title}}</title>  
+  <script src="https://api-maps.yandex.ru/2.1/?lang=ru_RU" type="text/javascript"></script> 
 </head>
 <body>
+  {{> './map-content.hbs'}}
 </body>
 </html>
