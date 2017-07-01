@@ -24,9 +24,69 @@ body, html
     linear-gradient(rgba(255,255,255,0), white 70%) 0 100%,
     radial-gradient(farthest-side at 50% 0, rgba(0,0,0,.2), rgba(0,0,0,0)),
     radial-gradient(farthest-side at 50% 100%, rgba(0,0,0,.2), rgba(0,0,0,0)) 0 100%;
+    background-color: #ffffff;
     background-repeat: no-repeat;
     background-size: 100% 40px, 100% 40px, 100% 14px, 100% 14px;
     background-attachment: local, local, scroll, scroll;
+}
+.templateBalloon{
+	position: relative;
+	display:block;
+	min-width: 310px;
+	max-height: 500px;
+	padding-bottom: 30px;
+	background-color: #ffffff; 
+	border-radius: 5px; 
+}
+
+.templateBalloonHeader {
+    margin: 0;
+    padding: 5px;
+	background-color: #f6856e; 
+	color: #ffffff;
+	font-size: 20px;
+	border-radius: 5px 5px 0 0;
+}
+.templateBalloonBody {
+ 	padding: 5px;
+	background-color: #ffffff; 
+	border-radius: 0 0 5px 5px;
+}
+
+.close {
+	display: block;
+    position: absolute;
+    color: #ffffff;
+    text-decoration:none;
+    font-size: 25px;
+    right: 5px;
+    top: 1px;
+}
+
+.input {
+	width: 90%;
+	padding-left:5%;
+	padding-right: 5%;
+	border-radius: 5px;
+	border:1px solid #c1c1c1;
+	box-shadow:none;
+}
+
+#addbutton {
+    position: absolute;
+	padding:5px;
+	background-color: #f6856e; 
+	color: #ffffff;
+	border-radius: 5px;
+	border: 0;
+	box-shadow:none;
+	right: 5px;
+    bottom: 5px;
+}
+.ballon_date {
+	position: absolute;	
+	right: 5px;
+    bottom: 5px;
 }
   
 </style>
