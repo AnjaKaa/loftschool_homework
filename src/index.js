@@ -1,13 +1,11 @@
- 
-
  var result=[]
  if(localStorage.getItem('myPlacemarkList')){
     result=JSON.parse(localStorage.getItem('myPlacemarkList'));
-    console.log(result);
+   // console.log(result);
 }
 var currentAddress='';
 var currentCoords;
-var geoObjects = [];
+var myPlacemark;  
 ymaps.ready(init);
 function init() {
     var myMap = new ymaps.Map('map', {
@@ -22,14 +20,11 @@ function init() {
 //загружаем сохранённые метки
 function loadStorage(){
  
-  var placeMarks=[];
+  var placeMarksAddress=[];
   for (var i=0;i<result.length;i++)
-      {
-
-        if (placeMarks.some((placeMarksItem)=> {return placeMarksItem.address==result[i].address})){
-                console.log('пропустили');
-        } else {
-            var myPlacemark= new ymaps.Placemark(result[i].coords, {
+      {       
+        if (placeMarksAddress.indexOf(result[i].address)==-1){
+            var myPlacemark= new ymaps.Placemark (result[i].coords, {
             iconCaption: '',
              balloonContentHeader: result[i].address,
              balloonContentBody:getContentBalloon(result[i].address)
@@ -38,13 +33,12 @@ function loadStorage(){
             
         });
            myMap.geoObjects.add(myPlacemark);
-           geoObjects.push(myPlacemark);
+           placeMarksAddress.push(result[i].address);
 
         }
       }
 
     ;
-   console.log(geoObjects);
   };
 
   loadStorage();
@@ -78,29 +72,42 @@ function loadStorage(){
         
       });
 
-    //слушаем клики на body
+    myMap.events.add('balloonopen', function (e) {
+         var coords = e.get('coords');
+            getAddress(coords)
+            .then((res)=>{
+                currentAddress=res;
+                currentCoords=coords;
+                myMap.balloon.open(coords, {
+                    contentHeader:res,
+                    contentBody:getContentBalloon(currentAddress)
+                });
+            })
+      });
+          
+
+    //слушаем клики на карте
     map.addEventListener('click',(e) => {
         if (e.target.id=='addbutton') {
-            createPlacemark();
-
+            createOpinion();
         }
     });
- 
-   // Создание метки.
-    function createPlacemark(coords) {
+  
+   // Создание нового отзыва
+    function createOpinion(coords) {
        if (!inputPlace.value||!inputName.value||!inputOpinion.value){
           alert('Не все поля заполнены! Отзыв не будет добавлен')
       } else { 
+        if (currentAddress=='') {
+          currentAddress=myMap.balloon._balloon._data.properties.get('balloonContentHeader');
+        }
 
+        var itNewPlacemark=true;
 
-        
-
-        var newPlacemark=true;
-
-        // if (result.some((resultItem)=> {return resultItem.address===resultItem.address})){
-        //    console.log('есть уже метка по адресу '+currentAddress);
-        //    newPlacemark=false;
-        // }
+        if (result.some((resultItem)=> {return resultItem.address==currentAddress})){
+          console.log('есть уже метка по адресу '+currentAddress);
+           itNewPlacemark=false;
+       } else { console.log('добавляем новую метку');}
 
         result.push({
                      coords:currentCoords,
@@ -115,34 +122,40 @@ function loadStorage(){
           
        
        
-        if (newPlacemark) {
-            var myPlacemark= new ymaps.Placemark(currentCoords, {
-                iconCaption: '',
-                balloonContentHeader: currentAddress,
-                balloonContentBody:getContentBalloon(currentAddress)
-            }
-            );
-            //новая метка
-            myMap.geoObjects.add(myPlacemark);  
-            geoObjects.push(myPlacemark);
-             //  обработчик клика на метке
-            myPlacemark.events.add('balloonopen', function(e) {
-                
-                 // Задаем новое содержимое балуна в соответствующее свойство метки.
-               myPlacemark.properties.set('balloonContent',getListOpinionForAddress(currentAddress));
-                console.log('click',myPlacemark.properties);
+        if (itNewPlacemark) {
+            var myPlacemark= createPlacemark(currentCoords,currentAddress);
+            // добавим новую метку на карту
+            myMap.geoObjects.add(myPlacemark); 
+          
             
-          })
-        } else {
+        }
+         else {
             //добавим новый отзыв в список отзываов по адресу
+          for (var i=0; i<myMap.geoObjects.getLength(); i++){           
+             if(myMap.geoObjects.get(i).properties.get('balloonContentHeader')==currentAddress) {
+               myMap.geoObjects.get(i).properties.set('balloonContentBody',getContentBalloon(currentAddress));
+             }
+          }
 
         } 
         listOpinionForAddress.innerHTML=getListOpinionForAddress(currentAddress);        
-        console.log("метка добавлена по адресу " + currentAddress);
+        console.log("отзыв добавлен по адресу " + currentAddress);
         
 
         return myPlacemark;
       }
+    }
+
+    //Создание новой метки
+    function createPlacemark(coords,address){
+      var myPlacemark= new ymaps.Placemark(coords, {
+                iconCaption: '',
+                balloonContentHeader:address,
+                balloonContentBody:getContentBalloon(address)
+            },
+                {openEmptyBalloon: true}
+            );
+      return myPlacemark;
     }
 
 // Определяем адрес по координатам (обратное геокодирование).
