@@ -47,7 +47,7 @@ function init() {
     var customItemContentLayout = ymaps.templateLayoutFactory.createClass(
         // Флаг "raw" означает, что данные вставляют "как есть" без экранирования html.
         '<h2 class=ballon_place>{{ properties.balloonPlace|raw }}</h2>' +
-            '<div class=ballon_address><a href="#" id="linkPlacemark">'+
+            '<div class=ballon_address ><a href="#" id="linkPlacemark">'+
             '{{properties.balloonContentHeader|raw }}'+
             '</a></div>' +
             '<div class=ballon_opinion>{{ properties.balloonOpinion|raw }}</div>'+
@@ -134,8 +134,17 @@ function init() {
             for (var i=0; i<placeMarks.length; i++) { 
                 if (placeMarks[i].properties.get ('balloonContentHeader')==e.target.innerText) {
               
-                    console.log('центрировать метку по адресу'+placeMarks[i].properties.get('balloonContentHeader'));
+                    //console.log('центрировать метку по адресу'+placeMarks[i].properties.get('balloonContentHeader'));
                     // placeMarks[i].balloon.open();
+                     myMap.balloon.open(placeMarks[i].properties.get ('balloonCoords'), 
+                    {
+                        contentHeader: placeMarks[i].properties.get ('balloonContentHeader'),
+                        contentBody: getContentBalloon(e.target.innerText)
+                    },
+                    {
+                        layout: BalloonLayout,
+                        contentLayout: BalloonContentLayoutEmpty
+                    }); 
                 }
             } 
             
