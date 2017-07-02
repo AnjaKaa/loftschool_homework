@@ -1,165 +1,312 @@
-/* ДЗ 2 - работа с исключениями и отладчиком */
+var result=[];
 
-/*
- Задача 1:
- Функция принимает массив и фильтрующую фукнцию и должна вернуть true или false
- Функция должна вернуть true только если fn вернула true для всех элементов массива
- Необходимо выбрасывать исключение в случаях:
- - array не массив или пустой массив (с текстом "empty array")
- - fn не является функцией (с текстом "fn is not a function")
- Зарпещено использовать встроенные методы для работы с массивами
- */
-function isAllTrue(array, fn) {
-    
-    if (array==false || !(array instanceof Array)) {
-        throw new Error('empty array');
-    } 
-    if (!(typeof fn == 'function')) {
-        throw new Error('fn is not a function');
-    }
-     
-    for (var i in array ) {
-        if (!(fn.call(null, array[i]))) {
-            return false;
-        }      
-    }
-
-    return true;
+if (localStorage.getItem('myPlacemarkList')) {
+    result=JSON.parse(localStorage.getItem('myPlacemarkList'));
 }
+var currentAddress='',
+    currentCoords,
+    placeMarks=[];
 
-/*
- Задача 2:
- Функция принимает массив и фильтрующую фукнцию и должна вернуть true или false
- Функция должна вернуть true если fn вернула true хотя бы для одного из элементов массива
- Необходимо выбрасывать исключение в случаях:
- - array не массив или пустой массив (с текстом "empty array")
- - fn не является функцией (с текстом "fn is not a function")
- Зарпещено использовать встроенные методы для работы с массивами
- */
-function isSomeTrue(array, fn) {
+ymaps.ready(init);
+function init() {
+    var myMap = new ymaps.Map('map', 
+        {
+            center: [55.753994, 37.622093],
+            zoom: 16,
+            controls: []
+        }, 
+        {
+            searchControlProvider: 'yandex#search'
+        }
+      );
 
-    if (array==false || !(array instanceof Array)) {
-        throw new Error('empty array');
-    } 
-    if ( !(typeof fn == 'function')) {
-        throw new Error('fn is not a function');
-    }
-     
-    for (var i in array ) {
-        if (fn.call(null, array[i])) {
-            return true;
-        }      
-    }
+// шаблон balloon
+    var BalloonLayout = ymaps.templateLayoutFactory.createClass(
+        '<div class="templateBalloon">' +
+        '<a class="close" id="close" href="#">&times;</a>' +
+        '$[[options.contentLayout observeSize maxWidth=310  maxHeight=500]]' +
+        '</div>');
 
-    return false;
-}
+    var BalloonContentLayout = ymaps.templateLayoutFactory.createClass(
+        '<div class="templateBalloonHeader">' +
+            '<b>{{properties.balloonContentHeader}}</b><br />' +
+        '</div>'+
+        '<div class="templateBalloonBody">'+
+            '$[properties.balloonContentBody]'+
+        '</div>'
+    );
+    var BalloonContentLayoutEmpty = ymaps.templateLayoutFactory.createClass(
+        '<div class="templateBalloonHeader">' +
+            '<b>{{contentHeader}}</b><br />' +
+        '</div>'+
+        '<div class="templateBalloonBody">'+
+            '$[contentBody]'+
+        '</div>'
+    );
+// Создаем собственный макет с информацией о выбранном геообъекте.
+    var customItemContentLayout = ymaps.templateLayoutFactory.createClass(
+        // Флаг "raw" означает, что данные вставляют "как есть" без экранирования html.
+        '<h2 class=ballon_place>{{ properties.balloonPlace|raw }}</h2>' +
+            '<div class=ballon_address ><a href="#" id="linkPlacemark">'+
+            '{{properties.balloonContentHeader|raw }}'+
+            '</a></div>' +
+            '<div class=ballon_opinion>{{ properties.balloonOpinion|raw }}</div>'+
+            '<div class=ballon_date>{{ properties.balloonDate|raw }}</div>'
+    );
 
-/*
- Задача 3:
- Функция принимает заранее неизветсное количество аргументов, первым из которых является функция fn
- Функция должна поочередно запусти fn для каждого переданного аргумента (кроме самой fn)
- Функция должна вернуть массив аргументов, для которых fn выбросила исключение
- Необходимо выбрасывать исключение в случаях:
- - fn не является функцией (с текстом "fn is not a function")
- */
-function returnBadArguments(fn, ...args) {
-    if ( !(typeof fn == 'function')) {
-        throw new Error('fn is not a function');
-    }
+    var clusterer = new ymaps.Clusterer({
+        clusterDisableClickZoom: true,
+        clusterOpenBalloonOnClick: true,
+        // Устанавливаем стандартный макет балуна кластера "Карусель".
+        clusterBalloonContentLayout: 'cluster#balloonCarousel',
+        // Устанавливаем собственный макет.
+        clusterBalloonItemContentLayout: customItemContentLayout,
+        // Устанавливаем режим открытия балуна. 
+        // В данном примере балун никогда не будет открываться в режиме панели.
+        clusterBalloonPanelMaxMapArea: 0,
+        // Устанавливаем размеры макета контента балуна (в пикселях).
+        clusterBalloonContentLayoutWidth: 200,
+        clusterBalloonContentLayoutHeight: 130,
+        // Устанавливаем максимальное количество элементов в нижней панели на одной странице
+        clusterBalloonPagerSize: 5
+        // Настройка внешего вида нижней панели.
+        // Режим marker рекомендуется использовать с небольшим количеством элементов.
+        // clusterBalloonPagerType: 'marker',
+        // Можно отключить зацикливание списка при навигации при помощи боковых стрелок.
+        // clusterBalloonCycling: false,
+        // Можно отключить отображение меню навигации.
+        // clusterBalloonPagerVisible: false
+    });
 
-    var res=[];
+    // загружаем сохранённые метки
+    function loadStorage() {
+ 
+        var placeMarksAddress=[];
 
-    for (var i in args) {
-        if (args.hasOwnProperty(i)) {
-            try {
-                fn(args[i]);
-            } catch (e) {
-                res.push(args[i]);
+        for (var i=0;i<result.length;i++) {       
+            if (placeMarksAddress.indexOf(result[i].address)==-1) {
+                var myPlacemark= createPlacemark(result[i]);
+
+                myMap.geoObjects.add(myPlacemark);
+                placeMarksAddress.push(result[i].address);
+                placeMarks.push(myPlacemark);
             }
         }
+        clusterer.add(placeMarks);
+        myMap.geoObjects.add(clusterer);
     }
 
-    return res;
-}
+    loadStorage();
 
-/*
- Задача 4:
- Функция имеет параметр number (по умолчанию - 0)
- Функция должна вернуть объект, у которого должно быть несколько методов:
- - sum - складывает number с переданными аргументами
- - dif - вычитает из number переданные аргументы
- - div - делит number на первый аргумент. Результат делится на следующий аргумент (если передан) и так далее
- - mul - умножает number на первый аргумент. Результат умножается на следующий аргумент (если передан) и так далее
+// Слушаем клик на карте.
+    myMap.events.add('click', function (e) {
+        if (!myMap.balloon.isOpen()) {
+            var coords = e.get('coords');
 
- Количество передаваемых в методы аргументов заранее неизвестно
- Необходимо выбрасывать исключение в случаях:
- - number не является числом (с текстом "number is not a number")
- - какой-либо из аргументов div является нулем (с текстом "division by 0")
- */
-function calculator(number=0) {
+            getAddress(coords)
+            .then((res)=>{
+                currentAddress=res;
+                currentCoords=coords;
+                myMap.balloon.open(coords, 
+                    {
+                        contentHeader: res,
+                        contentBody: getContentBalloon(currentAddress)
+                    },
+                    {
+                        layout: BalloonLayout,
+                        contentLayout: BalloonContentLayoutEmpty
+                    }); 
+            })
+        } else {
+            myMap.balloon.close();
+        }
+    });
 
-    number = number || 0;
-
-    if (!(typeof number == 'number')) {                
-        throw new Error('number is not a number');
-    }
-    var obj = {
-        sum: function(...args) {
-            var sumRes=number;
-            
-            for (var i in args) {
-                if (args.hasOwnProperty(i)) {
-                    sumRes+=args[i];
+    // слушаем клики на карте
+    map.addEventListener('click', (e) => {
+        if (e.target.id=='addbutton') {
+            createOpinion();
+        }
+        if (e.target.id=='close') {
+            myMap.balloon.close();
+        }
+        if (e.target.id=='linkPlacemark') {
+            for (var i=0; i<placeMarks.length; i++) { 
+                if (placeMarks[i].properties.get ('balloonContentHeader')==e.target.innerText) {
+              
+                    //console.log('центрировать метку по адресу'+placeMarks[i].properties.get('balloonContentHeader'));
+                    // placeMarks[i].balloon.open();
+                     myMap.balloon.open(placeMarks[i].properties.get ('balloonCoords'), 
+                    {
+                        contentHeader: placeMarks[i].properties.get ('balloonContentHeader'),
+                        contentBody: getContentBalloon(e.target.innerText)
+                    },
+                    {
+                        layout: BalloonLayout,
+                        contentLayout: BalloonContentLayoutEmpty
+                    }); 
                 }
+            } 
+            
+        }
+    });
+  
+   // Создание нового отзыва
+    function createOpinion(coords) {
+        if (!inputPlace.value||!inputName.value||!inputOpinion.value) {
+            alert('Не все поля заполнены! Отзыв не будет добавлен')
+        } else { 
+            if (currentAddress=='') {
+                currentAddress=myMap.balloon._balloon._data.properties.get('balloonContentHeader');
             }
 
-            return sumRes
-        },
-        dif: function(...args) {
-            var difRes=number;
-            
-            for (var i in args) {
-                if (args.hasOwnProperty(i)) {
-                    difRes-=args[i];
-                }
+            console.log('Адрес', currentAddress);
+
+            var itNewPlacemark=true;
+
+            if (result.some((resultItem)=> {
+                return resultItem.address == currentAddress 
+            })) { 
+                console.log('есть уже метка по адресу '+currentAddress);
+                itNewPlacemark = false;
+            } else { 
+                console.log('добавляем новую метку');
             }
 
-            return difRes;
-        },
-        div: function(...args) {
+            var newOpinion = {
+                coords: currentCoords,
+                address: currentAddress,
+                place: inputPlace.value,
+                name: inputName.value,
+                opinion: inputOpinion.value,
+                date: getCurrentDateTime()
+            };
+            result.push(newOpinion);
 
-            var divRes=number;
-            
-            for (var i in args) {
-                if (args.hasOwnProperty(i)) {
-                    if (args[i] === 0) {
-                        throw new Error('division by 0');
+            localStorage.setItem('myPlacemarkList', JSON.stringify(result)); 
+                
+            if (itNewPlacemark) {
+                var myPlacemark= createPlacemark(newOpinion);
+
+                // добавим новую метку на карту
+                myMap.geoObjects.add(myPlacemark); 
+                // добавим новую метку в кластер
+                clusterer.add(myPlacemark);
+                placeMarks.push(myPlacemark)
+            } else {
+                // добавим новый отзыв в список отзываов по адресу
+
+                for (var i=0; i<placeMarks.length; i++) {                   
+                    if (placeMarks[i].properties.get('balloonContentHeader')==currentAddress) {
+                        placeMarks[i].properties.set('balloonContentBody', getContentBalloon(currentAddress));
                     }
-                    divRes/=args[i];
                 }
-            }
+            }                     
+            listOpinionForAddress.innerHTML=getListOpinionForAddress(currentAddress);        
+            console.log('отзыв добавлен по адресу ' + currentAddress);
 
-            return divRes;
-        },
-        mul: function(...args) {
-            var mulRes=number;
-            
-            for (var i in args) {
-                if (args.hasOwnProperty(i)) {
-                    mulRes*=args[i];
-                }
-            }
-
-            return mulRes;
+            return myPlacemark;
         }
     }
 
-    return obj;
-}
+    // Создание новой метки
+    function createPlacemark(element) {
+        var myPlacemark= new ymaps.Placemark(element.coords, {
+            iconCaption: '',
+            balloonContentHeader: element.address,
+            balloonContentBody: getContentBalloon(element.address),
+            balloonPlace: element.place,
+            balloonDate: element.date,
+            balloonOpinion: element.opinion,
+            balloonCoords: element.coords
+        },
+            {
+                balloonLayout: BalloonLayout,
+                balloonContentLayout: BalloonContentLayout
+            }
+        );
 
-export {
-    isAllTrue,
-    isSomeTrue,
-    returnBadArguments,
-    calculator
-};
+        return myPlacemark;
+    }
+
+// Определяем адрес по координатам (обратное геокодирование).
+    function getAddress(coords) { 
+
+        return ymaps.geocode(coords).then(function (res) {
+            return res.geoObjects.get(0).properties.get('metaDataProperty.GeocoderMetaData.AddressDetails')
+                .Country.AddressLine;       
+             
+        });
+    }
+
+    // получим содержимое формы ввода отзыва
+    function getContentBalloon(address) {
+        var htmlText='';
+
+        htmlText+='<div id="listOpinionForAddress">'+(getListOpinionForAddress(address)||'Отзывов пока нет')+'</div>';
+        htmlText+='<form>';
+        htmlText+='<h4 style="color: #f6856e;"> ВАШ ОТЗЫВ</h4>';
+        htmlText+='<input type="text" class="input" id="inputName" placeholder="Имя"><br>';
+        htmlText+='<input type="text" class="input" id="inputPlace" placeholder="Компания"><br>';  
+        htmlText+='<textarea class="input" placeholder="Ваши впечатления" id="inputOpinion" rows="6"></textarea><br>';
+        htmlText+='<button id=\'addbutton\' type=\'button\'>Добавить</button>';
+        htmlText+='</form>';
+        
+        return htmlText;
+    }
+
+    // список отзывов по адресу
+    function getListOpinionForAddress(address) {
+        var content='';
+
+        // for (var i=0; i<result.length;i++) 
+        result
+          .filter((resultItem)=> {
+              return resultItem.address==address
+          })
+          .forEach ( (resultItem)=>{
+              content+='<b>'+resultItem.name+'</b> '; 
+              content+=resultItem.place+' '; 
+              content+=resultItem.date+'<br>'; 
+              content+=resultItem.opinion+'<br>'; 
+          });
+
+        return content;
+    }
+
+    function getCurrentDateTime() {
+        var dt=new Date();
+
+        var year = dt.getFullYear();
+
+        var month = dt.getMonth()+1;
+
+        if (month<10) { 
+            month = '0'+month;
+        }
+
+        var day = dt.getDate();
+
+        if (day<10) {
+            day = '0'+day;
+        }   
+        var hours = dt.getHours();
+
+        if (hours<10) { 
+            hours = '0'+hours; 
+        }
+
+        var min = dt.getMinutes();
+
+        if (min<10) {
+            min = '0'+min;
+        }
+        var sec = dt.getSeconds();
+
+        if (sec<10) { 
+            sec='0'+sec;
+        }
+
+        return year+'.'+month+'.'+day+' '+hours+':'+min+':'+sec;
+    }
+}
